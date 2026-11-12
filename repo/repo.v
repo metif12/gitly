@@ -20,29 +20,29 @@ struct Repo {
 	is_deleted         bool
 	users_contributed  []string @[skip]
 	users_authorized   []string @[skip]
-	nr_topics          int @[skip]
+	nr_topics          int      @[skip]
 	views_count        int
-	latest_update_hash string @[skip]
+	latest_update_hash string    @[skip]
 	latest_activity    time.Time @[skip]
 mut:
 	clone_url               string @[skip]
 	primary_branch          string
 	webhook_secret          string
 	tags_count              int
-	nr_open_issues          int @[orm: 'open_issues_count']
-	nr_open_prs             int @[orm: 'open_prs_count']
-	nr_releases             int @[orm: 'releases_count']
-	nr_branches             int @[orm: 'branches_count']
+	nr_open_issues          int @[sql: 'open_issues_count']
+	nr_open_prs             int @[sql: 'open_prs_count']
+	nr_releases             int @[sql: 'releases_count']
+	nr_branches             int @[sql: 'branches_count']
 	nr_tags                 int
-	nr_stars                int @[orm: 'stars_count']
+	nr_stars                int        @[sql: 'stars_count']
 	lang_stats              []LangStat @[skip]
 	created_at              int
 	nr_contributors         int
 	labels                  []Label @[skip]
 	status                  RepoStatus
 	msg_cache               map[string]string @[skip]
-	latest_commit_at        int @[skip]
-	activity_buckets        []int @[skip]
+	latest_commit_at        int               @[skip]
+	activity_buckets        []int             @[skip]
 	disable_discussions     bool
 	disable_projects        bool
 	disable_milestones      bool
@@ -900,7 +900,7 @@ fn (mut app App) update_repo_after_ref_changes(repo_id int, updates []git.GitRef
 // handle is not safe for concurrent use across threads.
 fn bg_recompute_lang_stats(repo_id int, conf config.Config) {
 	mut app := &App{
-		db: connect_db(conf) or {
+		db:     connect_db(conf) or {
 			eprintln('bg_recompute_lang_stats: cannot open ${db_backend_name()} db: ${err}')
 			return
 		}
@@ -961,10 +961,10 @@ fn (r &Repo) analyze_lang(app &App) ! {
 		}
 		lang_data := langs[lang]
 		d_lang_stats << LangStat{
-			repo_id: r.id
-			name: lang_data.name
-			pct: pct
-			color: lang_data.color
+			repo_id:     r.id
+			name:        lang_data.name
+			pct:         pct
+			color:       lang_data.color
 			lines_count: amount
 		}
 	}
@@ -1089,12 +1089,12 @@ fn (r &Repo) parse_ls(ls_line string, branch string) ?File {
 	}
 
 	return File{
-		name: item_name
-		parent_path: parent_path
-		repo_id: r.id
-		branch: branch
-		is_dir: item_type == 'tree'
-		size: if item_type == 'blob' { item_size.int() } else { 0 }
+		name:               item_name
+		parent_path:        parent_path
+		repo_id:            r.id
+		branch:             branch
+		is_dir:             item_type == 'tree'
+		size:               if item_type == 'blob' { item_size.int() } else { 0 }
 		is_size_calculated: item_type == 'blob'
 	}
 }
@@ -1131,12 +1131,12 @@ fn (r &Repo) parse_top_file_line(line string, branch string) ?File {
 	parent_path := if parent_path_raw == '.' { '' } else { parent_path_raw }
 
 	return File{
-		name: item_name
-		parent_path: parent_path
-		repo_id: r.id
-		branch: branch
-		is_dir: false
-		size: meta_parts[3].int()
+		name:               item_name
+		parent_path:        parent_path
+		repo_id:            r.id
+		branch:             branch
+		is_dir:             false
+		size:               meta_parts[3].int()
 		is_size_calculated: true
 	}
 }
@@ -1162,12 +1162,12 @@ fn (r &Repo) lookup_file_via_git(branch string, path string) ?File {
 		parent_path_raw := os.dir(item_path)
 		parent_path := if parent_path_raw == '.' { '' } else { parent_path_raw }
 		return File{
-			name: item_name
-			parent_path: parent_path
-			repo_id: r.id
-			branch: branch
-			is_dir: false
-			size: meta_parts[3].int()
+			name:               item_name
+			parent_path:        parent_path
+			repo_id:            r.id
+			branch:             branch
+			is_dir:             false
+			size:               meta_parts[3].int()
 			is_size_calculated: true
 		}
 	}
